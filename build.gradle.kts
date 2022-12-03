@@ -5,15 +5,15 @@ plugins {
 repositories {
     mavenCentral()
 }
-
-tasks {
-    sourceSets {
-        main {
-            java.srcDirs("src")
-        }
-    }
-
-    wrapper {
-        gradleVersion = "7.6"
-    }
-}
+//
+//tasks {
+//    sourceSets {
+//        main {
+//            java.srcDirs("src")
+//        }
+//    }
+//
+//    wrapper {
+//        gradleVersion = "7.6"
+//    }
+//}
