@@ -3,33 +3,31 @@ class Day03 {
     fun part1(input: List<String>): Int {
         return input
             .map { Rucksack(it) }
-            .map { it.getCompartmentIntersection() }
-            .map { it.first() }
+            .flatMap { it.getCompartmentIntersection() }
             .sumOf { it.toPriorityScore() }
     }
 
     fun part2(input: List<String>): Int {
         return input
-            .windowed(3, 3)
+            .chunked(3)
             .map { (elf1, elf2, elf3) -> Triple(Rucksack(elf1), Rucksack(elf2), Rucksack(elf3)) }
-            .map { it.first.getCompartmentIntersectionFrom(it.second, it.third) }
-            .map { it.first() }
+            .map { it.first.getCompartmentIntersectionFrom(it.second, it.third).single() }
             .sumOf { it.toPriorityScore() }
     }
 
-    class Rucksack(val content: String) {
+    class Rucksack(private val content: String) {
 
         fun getCompartmentIntersection(): Set<Char> {
             val splitIndex = if (content.length % 2 == 0) content.length / 2 else content.length / 2 + 1
-            val first = content.take(splitIndex).toCharArray()
-            val second = content.substring(splitIndex).toCharArray()
-            return first.intersect(second.toList())
+            val first = content.take(splitIndex).toSet()
+            val second = content.substring(splitIndex).toSet()
+            return first.intersect(second)
         }
 
         fun getCompartmentIntersectionFrom(other: Rucksack, another: Rucksack): Set<Char> {
-            return content.toCharArray()
-                .intersect(other.content.toCharArray().toList())
-                .intersect(another.content.toCharArray().toList())
+            return content.toSet()
+                .intersect(other.content.toSet())
+                .intersect(another.content.toSet())
         }
     }
 
