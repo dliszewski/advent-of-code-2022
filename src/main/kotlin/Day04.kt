@@ -3,34 +3,32 @@ class Day04 {
     fun part1(input: List<String>): Int {
         return input
             .map { it.toRanges() }
-            .count { (range1, range2) -> range1.includeRange(range2) }
+            .count { (range1, range2) -> range1 includeRange range2 }
     }
 
     fun part2(input: List<String>): Int {
         return input
             .map { it.toRanges() }
-            .count { (range1, range2) -> range1.overlapRange(range2) }
+            .count { (range1, range2) -> range1 overlapRange range2 }
     }
 
     private fun String.toRanges(): Pair<IntRange, IntRange> {
-        val ranges = split(",")
-        return Pair(ranges[0].toRange(), ranges[1].toRange())
+        val (range1, range2) = split(",")
+        return Pair(range1.toRange(), range2.toRange())
     }
 
-    private fun IntRange.includeRange(other: IntRange): Boolean {
-        return contains(other.first) && contains(other.last)
-                || other.contains(this.first) && other.contains(this.last)
+    private infix fun IntRange.includeRange(other: IntRange): Boolean {
+        return (first <= other.first && last >= other.last)
+                || (other.first <= first && other.last >= last)
     }
 
-    private fun IntRange.overlapRange(other: IntRange): Boolean {
-        return contains(other.first) || contains(other.last)
-                || other.contains(this.first) || other.contains(this.last)
+    private infix fun IntRange.overlapRange(other: IntRange): Boolean {
+        return (first <= other.last && other.first <= last)
+                || (first <= other.last && other.first <= last)
     }
 
     private fun String.toRange(): IntRange {
-        val range = split("-")
-        val from = range[0].toInt()
-        val to = range[1].toInt()
-        return IntRange(from, to)
+        val (from, to) = split("-")
+        return from.toInt()..to.toInt()
     }
 }
