@@ -4,11 +4,9 @@ class Day08 {
         return TreeArea(input).getVisibleTrees()
     }
 
-
     fun part2(input: List<String>): Int {
         return TreeArea(input).getBestScore()
     }
-
 
     class TreeArea(input: List<String>) {
 
@@ -17,23 +15,17 @@ class Day08 {
         private val size: Int
 
         init {
-            val size = input.first().length
-            val arr: Array<Array<Tree>> = parseTreeArea(size, input)
+            val arr: Array<Array<Tree>> = parseTreeArea(input)
             this.trees = arr
             this.size = trees.size - 1
         }
 
-        private fun parseTreeArea(
-            size: Int,
-            input: List<String>
-        ): Array<Array<Tree>> {
-            val arr: Array<Array<Tree>> = Array(size) { row -> Array(size) { col -> Tree(0, 0, 0) } }
-            input.forEachIndexed { rowId, row ->
-                row.forEachIndexed { columnId, column ->
-                    arr[rowId][columnId] = Tree(columnId, rowId, Integer.parseInt(column.toString()))
-                }
-            }
-            return arr
+        private fun parseTreeArea(input: List<String>): Array<Array<Tree>> {
+            return input.mapIndexed { rowId, row ->
+                row.mapIndexed { columnId, height ->
+                    Tree(columnId, rowId, height.digitToInt())
+                }.toTypedArray()
+            }.toTypedArray()
         }
 
         fun getVisibleTrees(): Int {
@@ -44,92 +36,70 @@ class Day08 {
             return trees.flatMap { row -> row.map { getTreeScore(it) } }.max()
         }
 
-        private fun isTreeVisible(tree: Tree): Boolean {
-            val isVisibleVertically = isVisibleVertically(tree)
-            val isVisibleHorizontally = isVisibleHorizontally(tree)
-            return isVisibleVertically || isVisibleHorizontally
-        }
+        private fun isTreeVisible(tree: Tree): Boolean = isVisibleVertically(tree) || isVisibleHorizontally(tree)
 
         private fun isVisibleVertically(tree: Tree): Boolean {
-            return if (tree.y == 0 || tree.y == size) {
+            return if (tree.rowId == 0 || tree.rowId == size) {
                 true
             } else {
-                val visibleTop = (0 until tree.y).all { tree.height > trees[it][tree.x].height }
-                val visibleBottom = (tree.y + 1..size).all { tree.height > trees[it][tree.x].height }
+                val visibleTop = (tree.rowId - 1 downTo 0).all { tree.height > trees[it][tree.columnId].height }
+                val visibleBottom = (tree.rowId + 1..size).all { tree.height > trees[it][tree.columnId].height }
                 visibleTop || visibleBottom
             }
         }
 
         private fun isVisibleHorizontally(tree: Tree): Boolean {
-            return if (tree.x == 0 || tree.x == size) {
+            return if (tree.columnId == 0 || tree.columnId == size) {
                 true
             } else {
-                val visibleLeft = (0 until tree.x).all { tree.height > trees[tree.y][it].height }
-                val visibleRight = (tree.x + 1..size).all { tree.height > trees[tree.y][it].height }
+                val visibleLeft = (tree.columnId - 1 downTo 0).all { tree.height > trees[tree.rowId][it].height }
+                val visibleRight = (tree.columnId + 1..size).all { tree.height > trees[tree.rowId][it].height }
                 visibleLeft || visibleRight
             }
         }
 
-
-        private fun getTreeScore(tree: Tree): Int {
-            val isVisibleVertically = getScoreVertically(tree)
-            val isVisibleHorizontally = getScoreHorizontally(tree)
-            return isVisibleVertically * isVisibleHorizontally
-        }
+        private fun getTreeScore(tree: Tree): Int = getScoreVertically(tree) * getScoreHorizontally(tree)
 
         private fun getScoreVertically(tree: Tree): Int {
-            return if (tree.y == 0 || tree.y == size) {
+            return if (tree.rowId == 0 || tree.rowId == size) {
                 1
             } else {
-                var scoreTop = 0
-                for (y in (tree.y - 1) downTo 0) {
-                    val tempTree = trees[y][tree.x]
-                    scoreTop++
-                    if (tempTree.height >= tree.height) {
-                        break
-                    }
-                }
-
-                var scoreBottom = 0
-                for (y in (tree.y + 1)..size) {
-                    val t = trees[y][tree.x]
-                    scoreBottom++
-                    if (t.height >= tree.height) {
-                        break
-                    }
-                }
+                val scoreTop = (tree.rowId - 1 downTo 0)
+                    .map { trees[it][tree.columnId] }
+                    .takeUntil { it.height >= tree.height }.count()
+                val scoreBottom = (tree.rowId + 1..size)
+                    .map { trees[it][tree.columnId] }
+                    .takeUntil { it.height >= tree.height }.count()
                 scoreTop * scoreBottom
             }
         }
 
         private fun getScoreHorizontally(tree: Tree): Int {
-            return if (tree.x == 0 || tree.x == size) {
+            return if (tree.columnId == 0 || tree.columnId == size) {
                 1
             } else {
-                var scoreLeft = 0
-                for (x in (tree.x - 1) downTo 0) {
-                    val tempTree = trees[tree.y][x]
-                    scoreLeft++
-                    if (tempTree.height >= tree.height) {
-                        break
-                    }
-                }
-
-                var scoreRight = 0
-                for (x in (tree.x+1)..size) {
-                    val tempTree = trees[tree.y][x]
-                    scoreRight++
-                    if (tempTree.height >= tree.height) {
-                        break
-                    }
-                }
+                val scoreLeft = (tree.columnId - 1 downTo 0)
+                    .map { trees[tree.rowId][it] }
+                    .takeUntil { it.height >= tree.height }.count()
+                val scoreRight = (tree.columnId + 1..size)
+                    .map { trees[tree.rowId][it] }
+                    .takeUntil { it.height >= tree.height }.count()
                 scoreLeft * scoreRight
             }
         }
-
     }
 
-    data class Tree(val x: Int, val y: Int, val height: Int)
+    data class Tree(val columnId: Int, val rowId: Int, val height: Int)
 
+}
+
+private fun <T> Iterable<T>.takeUntil(predicate: (T) -> Boolean): List<T> {
+    val list = ArrayList<T>()
+    for (item in this) {
+        list.add(item)
+        if (predicate(item))
+            break
+    }
+    return list
 }
 
