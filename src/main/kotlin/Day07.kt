@@ -56,9 +56,10 @@ class Day07 {
         val required = 30_000_000
         val directoriesMap = directoriesMap(input)
         val used = directoriesMap.getOrDefault("", 0)
-        val toFree = used - required
-        val filterValues = directoriesMap.filterValues { used - it <= required }.minBy { it.value }.value
-        return filterValues
+        val unusedSpace = total - used
+        val deficit = required - unusedSpace
+
+        return directoriesMap.values.filter { it >= deficit }.min()
     }
 
 }
