@@ -1,3 +1,4 @@
+import java.lang.StringBuilder
 
 class Day10 {
 
@@ -14,8 +15,26 @@ class Day10 {
         return result
     }
 
-    fun part2(input: List<String>): Int {
-        return 2
+    fun part2(input: List<String>): String {
+        val crtCyclesToCheck = (40..220 step 40).toList()
+        var spritePosition = 0
+        val instructions = listOf(1) + input.flatMap { it.toOperation() }
+        val crtScreen = StringBuilder()
+
+        instructions.reduceIndexed { cycle, acc, instruction ->
+            crtScreen.append( if((cycle-1) % 40 in spritePosition-1..spritePosition+1) '#' else '.')
+            if (cycle in crtCyclesToCheck) {
+                crtScreen.appendLine()
+            }
+            spritePosition = acc + instruction
+            acc + instruction
+        }
+
+        val screen =  crtScreen.toString()
+        println("====== Result ======")
+        println(screen)
+        println("====================")
+        return screen
     }
 
     private fun String.toOperation(): List<Int> {
