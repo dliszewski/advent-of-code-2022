@@ -22,7 +22,7 @@ class Day10 {
         val crtScreen = StringBuilder()
 
         instructions.reduceIndexed { cycle, acc, instruction ->
-            crtScreen.append( if((cycle-1) % 40 in spritePosition-1..spritePosition+1) '#' else '.')
+            crtScreen.append(if ((cycle - 1) % 40 in spritePosition - 1 .. spritePosition + 1) '#' else '.')
             if (cycle in crtCyclesToCheck) {
                 crtScreen.appendLine()
             }
@@ -30,7 +30,7 @@ class Day10 {
             acc + instruction
         }
 
-        val screen =  crtScreen.toString()
+        val screen = crtScreen.toString()
         println("====== Result ======")
         println(screen)
         println("====================")
