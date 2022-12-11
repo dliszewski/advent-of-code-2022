@@ -1,49 +1,59 @@
-import java.util.function.IntFunction
-
 class Day11 {
 
-    fun part1(input: String): Int {
+    fun part1(input: String): Long {
         val monkeys = input.split("\n\n").map { it.toMonkey() }.toTypedArray()
         val rounds = 20
+        val stressReducerFormula: (Long) -> Long = { it / 3 }
         repeat(rounds) { round ->
             monkeys.forEach {
-                it.handleItems().forEach { (item, monkey) ->
-                    monkeys[monkey].passItem(item)
+                it.handleItems(stressReducerFormula).forEach {
+                        (item, monkey) -> monkeys[monkey].passItem(item)
                 }
             }
-            println("End round $round")
         }
         return monkeys.map { it.handledItemsCount }.sortedDescending().take(2).reduce { acc, i -> acc * i }
     }
 
-    fun part2(input: List<String>): Int {
-        return 2
+    fun part2(input: String): Long {
+        val monkeys = input.split("\n\n").map { it.toMonkey() }.toTypedArray()
+        val rounds = 10000
+        val lcm = monkeys.map { it.divisor.toLong() }.reduce(Long::times)
+        val stressReducerFormula: (Long) -> Long = { it % lcm }
+        repeat(rounds) {
+            monkeys.forEach {
+                it.handleItems(stressReducerFormula).forEach { (itemToPass, monkeyNumber) ->
+                    monkeys[monkeyNumber].passItem(itemToPass)
+                }
+            }
+        }
+        val map = monkeys.map { it.handledItemsCount }
+        return map.sortedDescending().take(2).reduce { acc, i -> acc * i }
     }
 
     data class Monkey(
-        private val items: MutableList<Int>,
-        private val newStressLevelFormula: IntFunction<Int>,
-        private val divisor: Int,
+        private val items: MutableList<Long>,
+        private val newStressLevelFormula: (Long) -> Long,
+        val divisor: Int,
         private val passToOnSuccess: Int,
-        private val passToOnFailure: Int
+        private val passToOnFailure: Int,
+        var handledItemsCount: Long = 0L
     ) {
-        var handledItemsCount = 0
-        fun handleItems(): List<Pair<Int, Int>> {
+        fun handleItems(stressReducerFormula: (Long) -> Long): List<Pair<Long, Int>> {
             val handledItems = items.map {
                 handledItemsCount++
-                handleItem(it)
+                handleItem(it, stressReducerFormula)
             }
             items.clear()
             return handledItems
         }
 
-        private fun handleItem(item: Int): Pair<Int, Int> {
-            val newStressLevel = newStressLevelFormula.apply(item)
-            val levelAfterBoredMonkey = newStressLevel / 3
-            return levelAfterBoredMonkey to if (levelAfterBoredMonkey % divisor == 0) passToOnSuccess else passToOnFailure
+        private fun handleItem(item: Long, stressReducerFormula: (Long) -> Long): Pair<Long, Int> {
+            val newStressLevel = newStressLevelFormula(item)
+            val levelAfterBoredMonkey = stressReducerFormula(newStressLevel)
+            return levelAfterBoredMonkey to if (levelAfterBoredMonkey % divisor == 0L) passToOnSuccess else passToOnFailure
         }
 
-        fun passItem(item: Int) {
+        fun passItem(item: Long) {
             items.add(item)
         }
     }
@@ -63,18 +73,18 @@ class Day11 {
     private fun String.toItems() = trim()
         .substringAfter("Starting items: ")
         .split(", ")
-        .map { it.toInt() }
+        .map { it.toLong() }
         .toMutableList()
 
     private fun String.toDivisor() = trim().substringAfter("Test: divisible by ").toInt()
     private fun String.toSuccessMonkey() = trim().substringAfter("If true: throw to monkey ").toInt()
     private fun String.toFailureMonkey() = trim().substringAfter("If false: throw to monkey ").toInt()
 
-    private fun String.mapToOperation(): IntFunction<Int> {
+    private fun String.mapToOperation(): (Long) -> Long {
         val (sign, value) = trim().substringAfter("Operation: new = old ").split(" ")
         return when (sign) {
-            "*" -> IntFunction { i: Int -> if (value == "old") i * i else i * value.toInt() }
-            "+" -> IntFunction { i: Int -> if (value == "old") i + i else i + value.toInt() }
+            "*" -> { old -> old * if (value == "old") old else value.toLong() }
+            "+" -> { old -> old + if (value == "old") old else value.toLong() }
             else -> error("wrong operation $this")
         }
     }

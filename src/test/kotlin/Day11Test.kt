@@ -39,39 +39,25 @@ internal class Day11Test {
         @Test
         fun `Matches example`() {
             // given
-            val input = readInputLines("Day11_test")
+            val input = readInput("Day11_test")
 
             // when
             val answer = Day11().part2(input)
 
             // then
-            assertThat(answer).isEqualTo("""
-                ##..##..##..##..##..##..##..##..##..##..
-                ###...###...###...###...###...###...###.
-                ####....####....####....####....####....
-                #####.....#####.....#####.....#####.....
-                ######......######......######......####
-                #######.......#######.......#######.....
-            """.trimIndent())
+            assertThat(answer).isEqualTo(2713310158)
         }
 
         @Test
         fun `Actual answer`() {
             // given
-            val input = readInputLines("Day11")
+            val input = readInput("Day11")
 
             // when
             val answer = Day11().part2(input)
 
             // Assert
-            assertThat(answer).isEqualTo("""
-                ###..#....###...##..####.###...##..#....
-                #..#.#....#..#.#..#.#....#..#.#..#.#....
-                #..#.#....#..#.#..#.###..###..#....#....
-                ###..#....###..####.#....#..#.#....#....
-                #....#....#....#..#.#....#..#.#..#.#....
-                #....####.#....#..#.#....###...##..####.
-            """.trimIndent())
+            assertThat(answer).isEqualTo(21553910156)
         }
     }
 }
