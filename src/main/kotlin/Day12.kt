@@ -3,37 +3,29 @@ import java.util.*
 class Day12 {
 
     fun part1(input: List<String>): Int {
-        return mapToArea(input).traverse()
+        val area = mapToArea(input)
+        return area.traverseFromStart()
     }
 
     fun part2(input: List<String>): Int {
-        return mapToArea(input, true).traverse()
+        return mapToArea(input).traverseFromEnd()
     }
 
-    private fun mapToArea(input: List<String>, addOtherStartingPoints: Boolean = false): Area {
-        var finishPoint = Point(0, 0)
-        val startingPoints = mutableSetOf<Point>()
-        val field = input.mapIndexed { y, row ->
+    private fun mapToArea(input: List<String>): Area {
+        var finishPoint: Point? = null
+        var startingPoint: Point? = null
+        val field: Map<Point, Int> = input.flatMapIndexed { y, row ->
             row.mapIndexed { x, heightCode ->
-                if (heightCode == 'E') {
-                    finishPoint = Point(x, y)
+                val point = Point(x, y)
+                val height = heightCode.decodeHeight()
+                when (heightCode) {
+                    'E' -> point to height.also { finishPoint = point }
+                    'S' -> point to height.also { startingPoint = point }
+                    else -> point to height
                 }
-                if (heightCode == 'S') {
-                    startingPoints.add(Point(x, y))
-                }
-                if (addOtherStartingPoints && heightCode == 'a') {
-                    startingPoints.add(Point(x, y))
-                }
-                heightCode.decodeHeight()
-            }.toIntArray()
-        }.toTypedArray()
-        return Area(
-            field.first().size - 1,
-            field.size - 1,
-            startingPoints,
-            finishPoint,
-            field
-        )
+            }
+        }.toMap()
+        return Area(startingPoint!!, finishPoint!!, field)
     }
 
     private fun Char.decodeHeight(): Int {
@@ -46,30 +38,42 @@ class Day12 {
     }
 
     data class Area(
-        val width: Int,
-        val height: Int,
-        val startingPoints: Set<Point>,
+        val startingPoint: Point,
         val destination: Point,
-        val filed: Array<IntArray>
+        val field: Map<Point, Int>
     ) {
-        fun traverse(): Int {
-            val startingPaths = startingPoints.map { Path(it, 0, 0) }
-            val toBeEvaluated = PriorityQueue<Path>().apply { addAll(startingPaths) }
+        fun traverseFromStart(): Int {
+            val canMove: (Int, Int) -> Boolean = { nextPlace, currentPlace -> nextPlace - currentPlace <= 1 }
+            val isDestination: (Path) -> Boolean = { it.point == destination }
+            return traverse(canMove, isDestination, startingPoint)
+        }
+
+        fun traverseFromEnd(): Int {
+            val canMove: (Int, Int) -> Boolean = { nextPlace, currentPlace -> currentPlace - nextPlace <= 1 }
+            val isDestination: (Path) -> Boolean = { field[it.point] == 0 }
+            return traverse(canMove, isDestination, destination)
+        }
+
+        private fun traverse(
+            canMove: (Int, Int) -> Boolean,
+            isDestination: (Path) -> Boolean,
+            startingPoint: Point
+        ): Int {
+            val toBeEvaluated = PriorityQueue<Path>().apply { add(Path(startingPoint, 0)) }
             val visited = mutableSetOf<Point>()
 
             while (toBeEvaluated.isNotEmpty()) {
-                val thisPlace = toBeEvaluated.poll()
-                if (thisPlace.point == destination) {
-                    return thisPlace.distanceSoFar
+                val currentPlace = toBeEvaluated.poll()
+                if (isDestination(currentPlace)) {
+                    return currentPlace.distanceSoFar
                 }
-                if (thisPlace.point !in visited) {
-                    visited.add(thisPlace.point)
-                    thisPlace.point
+                if (currentPlace.point !in visited) {
+                    visited.add(currentPlace.point)
+                    currentPlace.point
                         .neighbors()
-                        .filter { it.x in (0..width) && it.y in (0..height) }
-                        .map { Point(it.x, it.y) to filed[it.y][it.x] }
-                        .filter { (_, height) -> height - thisPlace.height <= 1 }
-                        .map { (point, height) -> Path(point, height, thisPlace.distanceSoFar + 1) }
+                        .filter { nextPlace -> nextPlace in field }
+                        .filter { nextPlace -> canMove(field.getValue(nextPlace), field.getValue(currentPlace.point)) }
+                        .map { nextPlace -> Path(nextPlace, currentPlace.distanceSoFar + 1) }
                         .forEach { path -> toBeEvaluated.offer(path) }
                 }
             }
@@ -77,7 +81,7 @@ class Day12 {
         }
     }
 
-    data class Path(val point: Point, val height: Int, val distanceSoFar: Int) : Comparable<Path> {
+    data class Path(val point: Point, val distanceSoFar: Int) : Comparable<Path> {
         override fun compareTo(other: Path): Int {
             return distanceSoFar - other.distanceSoFar
         }
