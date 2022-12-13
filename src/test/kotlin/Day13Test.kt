@@ -45,7 +45,7 @@ internal class Day13Test {
             val answer = Day13().part2(input)
 
             // then
-            assertThat(answer).isEqualTo(29)
+            assertThat(answer).isEqualTo(140)
         }
 
         @Test
@@ -57,7 +57,7 @@ internal class Day13Test {
             val answer = Day13().part2(input)
 
             // Assert
-            assertThat(answer).isEqualTo(375)
+            assertThat(answer).isEqualTo(22184)
         }
     }
 }

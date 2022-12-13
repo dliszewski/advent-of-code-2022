@@ -8,7 +8,12 @@ class Day13 {
     }
 
     fun part2(input: String): Int {
-        return 2
+        val packets = input.split("\n\n").map { it.lines() }
+            .flatMap { (packet, other) -> listOf(packet.mapToPacketData(), other.mapToPacketData()) }
+        val dividerPacket2 = "[[6]]".mapToPacketData()
+        val dividerPacket1 = "[[2]]".mapToPacketData()
+        val ordered = (packets + dividerPacket1 + dividerPacket2).sorted()
+        return (ordered.indexOf(dividerPacket1) + 1) * (ordered.indexOf(dividerPacket2) + 1)
     }
 
     private fun String.mapToPacketData(): PacketData {
@@ -49,13 +54,6 @@ class Day13 {
                     .map { (packet1, packet2) -> packet1.compareTo(packet2) }
                     .firstOrNull { it != 0 } ?: data.size.compareTo(other.data.size)
             }
-        }
-    }
-
-    data class Packet(val data: String) : Comparable<Packet> {
-
-        override fun compareTo(other: Packet): Int {
-            TODO("Not yet implemented")
         }
     }
 
