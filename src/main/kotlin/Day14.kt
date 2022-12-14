@@ -1,26 +1,22 @@
 class Day14 {
 
     fun part1(input: List<String>): Int {
-        val sandPoint = Point(500, 0)
-        val rocks = input.flatMap {
-            it.split(" -> ").windowed(2).flatMap { (line1, line2) ->
-                mapToPoints(line1, line2)
-            }
-        }.toSet()
-        val cave = Cave(rocks, sandPoint)
+        val rocks = mapToRocks(input)
+        val cave = Cave(rocks)
         return cave.dropSand()
     }
 
     fun part2(input: List<String>): Int {
-        val sandPoint = Point(500, 0)
-        val rocks = input.flatMap {
-            it.split(" -> ").windowed(2).flatMap { (line1, line2) ->
-                mapToPoints(line1, line2)
-            }
-        }.toSet()
-        val cave = Cave(rocks, sandPoint, true)
+        val rocks = mapToRocks(input)
+        val cave = Cave(rocks, true)
         return cave.dropSandWithFloor()
     }
+
+    private fun mapToRocks(input: List<String>) = input.flatMap {
+        it.split(" -> ")
+            .windowed(2)
+            .flatMap { (line1, line2) -> mapToPoints(line1, line2) }
+    }.toSet()
 
     private fun mapToPoints(line1: String, line2: String): List<Point> {
         val (p1x, p1y) = line1.split(",").map { it.toInt() }
@@ -29,7 +25,6 @@ class Day14 {
         val yRange = if (p1y <= p2y) p1y..p2y else p2y..p1y
         return (xRange).flatMap { x -> (yRange).map { y -> Point(x, y) } }
     }
-
 
     data class Point(val x: Int, val y: Int) {
         fun moveDown(): List<Point> {
@@ -41,10 +36,11 @@ class Day14 {
         }
     }
 
-    class Cave(rocks: Set<Point>, val sandPoint: Point, withFloor: Boolean = false) {
-        val rocksAndFloor = mutableSetOf<Point>()
-        val sand = mutableSetOf<Point>()
-        var lowestRock = 0
+    class Cave(rocks: Set<Point>, withFloor: Boolean = false) {
+        private val sandPoint = Point(500, 0)
+        private val rocksAndFloor = mutableSetOf<Point>()
+        private val sand = mutableSetOf<Point>()
+        private var lowestRock = 0
 
         init {
             rocksAndFloor.addAll(rocks)
@@ -61,29 +57,20 @@ class Day14 {
             } else {
                 rocks.map { it.y }.max()
             }
-
         }
 
         fun dropSand(): Int {
             var nextSpot = findLandingPlace(sandPoint)
-            while (nextSpot != null) {
+            while (nextSpot != null && nextSpot != sandPoint) {
                 sand.add(nextSpot)
-                val np = findLandingPlace(sandPoint)
-                nextSpot = np
+                nextSpot = findLandingPlace(sandPoint)
             }
             draw()
             return sand.size
         }
 
         fun dropSandWithFloor(): Int {
-            var nextSpot = findLandingPlace(sandPoint)
-            while (nextSpot != null && nextSpot != sandPoint) {
-                sand.add(nextSpot)
-                val np = findLandingPlace(sandPoint)
-                nextSpot = np
-            }
-            draw()
-            return sand.size + 1
+            return dropSand() + 1
         }
 
         private fun findLandingPlace(current: Point): Point? {
@@ -116,7 +103,6 @@ class Day14 {
                     }
                 }
             }
-
         }
     }
 
