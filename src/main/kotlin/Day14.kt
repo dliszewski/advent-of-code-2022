@@ -2,14 +2,12 @@ class Day14 {
 
     fun part1(input: List<String>): Int {
         val rocks = mapToRocks(input)
-        val cave = Cave(rocks)
-        return cave.dropSand()
+        return Cave(rocks).dropSand()
     }
 
     fun part2(input: List<String>): Int {
         val rocks = mapToRocks(input)
-        val cave = Cave(rocks, true)
-        return cave.dropSandWithFloor()
+        return Cave(rocks, true).dropSandWithFloor()
     }
 
     private fun mapToRocks(input: List<String>) = input.flatMap {
@@ -27,7 +25,7 @@ class Day14 {
     }
 
     data class Point(val x: Int, val y: Int) {
-        fun moveDown(): List<Point> {
+        fun possibleMovesDown(): List<Point> {
             return listOf(
                 Point(x, y + 1),
                 Point(x - 1, y + 1),
@@ -45,18 +43,20 @@ class Day14 {
         init {
             rocksAndFloor.addAll(rocks)
             lowestRock = if (withFloor) {
-                val offset = rocks.map { it.y }.max()
                 val floorLevel = rocks.map { it.y }.max() + 2
-                val minX = rocks.map { it.x }.min() - offset
-                val maxX = rocks.map { it.x }.max() + offset
-                val floor = (minX..maxX).map {
-                    Point(it, floorLevel)
-                }
+                val floor = createFloor(rocks, floorLevel)
                 rocksAndFloor.addAll(floor)
                 floorLevel
             } else {
                 rocks.map { it.y }.max()
             }
+        }
+
+        private fun createFloor(rocks: Set<Point>, floorLevel: Int): List<Point> {
+            val offset = rocks.map { it.y }.max()
+            val minX = rocks.map { it.x }.min() - offset
+            val maxX = rocks.map { it.x }.max() + offset
+            return (minX..maxX).map { Point(it, floorLevel) }
         }
 
         fun dropSand(): Int {
@@ -75,7 +75,7 @@ class Day14 {
 
         private fun findLandingPlace(current: Point): Point? {
             if (current.y > lowestRock) return null
-            val nextPoint = current.moveDown().firstOrNull { it !in rocksAndFloor && it !in sand }
+            val nextPoint = current.possibleMovesDown().firstOrNull { it !in rocksAndFloor && it !in sand }
             return when (nextPoint) {
                 null -> current
                 else -> findLandingPlace(nextPoint)
