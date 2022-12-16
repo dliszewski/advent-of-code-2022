@@ -42,10 +42,10 @@ internal class Day15Test {
             val input = readInputLines("Day15_test")
 
             // when
-            val answer = Day15().part2(input)
+            val answer = Day15().part2(input, 20)
 
             // then
-            assertThat(answer).isEqualTo(93)
+            assertThat(answer).isEqualTo(56000011)
         }
 
         @Test
@@ -54,7 +54,7 @@ internal class Day15Test {
             val input = readInputLines("Day15")
 
             // when
-            val answer = Day15().part2(input)
+            val answer = Day15().part2(input, 4000000)
 
             // Assert
             assertThat(answer).isEqualTo(26831)
